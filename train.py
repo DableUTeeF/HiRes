@@ -1,17 +1,14 @@
 from __future__ import print_function
-from model import HiRes
+from model import HiResA
 from keras.optimizers import sgd
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from keras.preprocessing.image import ImageDataGenerator
 from keras.datasets.cifar10 import load_data
 import keras
+import json
 
 if __name__ == '__main__':
-    model = HiRes()
-    from keras.utils import plot_model
-
-    plot_model(model, to_file='model.png')
-
+    model = HiResA()
     print(model.summary())
     model.compile(optimizer=sgd(lr=0.01, momentum=0.9),
                   loss='categorical_crossentropy',
@@ -48,8 +45,10 @@ if __name__ == '__main__':
     #                     validation_data=test_datagen,
     #                     callbacks=[reduce_lr, checkpoint])
 
-    model.fit(x_train, y_train,
-              epochs=100,
-              batch_size=32,
-              validation_data=[x_test, y_test],
-              callbacks=[checkpoint, reduce_lr])
+    f = model.fit(x_train, y_train,
+                  epochs=100,
+                  batch_size=32,
+                  validation_data=[x_test, y_test],
+                  callbacks=[checkpoint, reduce_lr])
+    with open('log/try1.json', 'w') as wr:
+        json.dump(f.history, wr)
