@@ -1,2 +1,5 @@
 try         model           acc
 1           HiResA
+2           HiResB
+3           HiResC
+4           HiResD
