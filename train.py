@@ -1,5 +1,5 @@
 from __future__ import print_function
-from model import HiResA
+from model import HiResA, HiResC, HiResB
 from keras.optimizers import sgd
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from keras.preprocessing.image import ImageDataGenerator
@@ -8,6 +8,7 @@ import keras
 import json
 
 if __name__ == '__main__':
+    try_no = '1'
     model = HiResA()
     print(model.summary())
     model.compile(optimizer=sgd(lr=0.01, momentum=0.9),
@@ -18,7 +19,7 @@ if __name__ == '__main__':
                                   min_lr=1e-11,
                                   patience=5,
                                   factor=0.2)
-    checkpoint = ModelCheckpoint('weights/try-1.h5',
+    checkpoint = ModelCheckpoint('weights/try-{}.h5'.format(try_no),
                                  monitor='val_acc',
                                  mode='max',
                                  save_best_only=1,
@@ -50,5 +51,5 @@ if __name__ == '__main__':
                   batch_size=32,
                   validation_data=[x_test, y_test],
                   callbacks=[checkpoint, reduce_lr])
-    with open('log/try1.json', 'w') as wr:
+    with open('log/try_{}.json'.format(try_no), 'w') as wr:
         json.dump(f.history, wr)
