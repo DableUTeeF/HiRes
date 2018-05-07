@@ -2,6 +2,7 @@
 HiResA(18/1.79) - HiResB(18/13.5)   kernel wide
 HiResB(18/13.5) - HiResC(18/3.64)   squeezing kernel
 HiResC(18/3.64) - HiResD(18/1.46)   squeezing method
-HiResD(18/1.46) - HiResE(18/0.29)   squeezenet style vs resnet style
+HiResD(18/1.46) - HiResE(18/0.29)   vs resnet style
 HiResE(18/0.29) - HiResF(24/0.42)   depth compare
+HiResE(18/0.29) - HiResG(18/0.30)   resnet vs squeezenet style
 HiResF(24/0.41) - ResA(25/0.95)     Resnet vs HiResNet
