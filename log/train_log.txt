@@ -1,5 +1,10 @@
 try         model           acc
-1           HiResA
+1           HiResA          0.8496
 2           HiResB
-3           HiResC
-4           HiResD
+3           HiResC          0.8494
+4           HiResD          0.8307
+5           HiResE          0.8282
+6           HiResF          0.8333
+7           HiResG          0.8340
+8           ResA            0.8371
+9           HiResH          0.

@@ -74,6 +74,52 @@ def hires_sq_block(input_tensor, filters, block, stage):
     return Concatenate()([r, x]), z
 
 
+def hires_concat_block(input_tensor, filters, block, stage):
+    """
+    :param input_tensor: list [convolution_path, skip_path]
+    :param filters: list [skip_channel, squeeze, expand]
+    :param block: number or something for name layers
+    :param stage: number for name layers
+    :return: convolution_path, skip_path
+    """
+    filters1, filters2, filters3 = filters
+    x = Conv2D(filters1, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage))(input_tensor[0])
+    x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage))(x)
+    z = Concatenate()([GlobalAveragePooling2D()(x), (input_tensor[1])])
+    z = Activation('relu', name='skip_{}_relu_{}'.format(block, stage))(z)
+    x = Activation('relu', name='block_{}_relu_{}'.format(block, stage))(x)
+    x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1))(x)
+    x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+1))(x)
+    x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+1))(x)
+    x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2))(x)
+    x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+2))(x)
+    x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+2))(x)
+    return x, z
+
+
+def hires_add_block(input_tensor, filters, block, stage):
+    """
+    :param input_tensor: list [convolution_path, skip_path]
+    :param filters: list [skip_channel, squeeze, expand]
+    :param block: number or something for name layers
+    :param stage: number for name layers
+    :return: convolution_path, skip_path
+    """
+    filters1, filters2, filters3 = filters
+    x = Conv2D(filters1, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage))(input_tensor[0])
+    x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage))(x)
+    z = add([GlobalAveragePooling2D()(x), (input_tensor[1])])
+    z = Activation('relu', name='skip_{}_relu_{}'.format(block, stage))(z)
+    x = Activation('relu', name='block_{}_relu_{}'.format(block, stage))(x)
+    x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1))(x)
+    x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+1))(x)
+    x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+1))(x)
+    x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2))(x)
+    x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+2))(x)
+    x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+2))(x)
+    return x, z
+
+
 def HiResA():
     img_input = Input(shape=(32, 32, 3), name='input')
     x = Conv2D(32, 3, name='block_1_Conv_1')(img_input)
@@ -446,6 +492,29 @@ def HiResG():
     z = Activation('relu', name='skip_relu_6')(z)
 
     x = Dense(10, activation='softmax', name='softmax_output')(z)
+    return Model(img_input, x)
+
+
+def HiResH():
+    img_input = Input(shape=(32, 32, 3), name='input')
+    x = Conv2D(32, 5, name='block_1_Conv_1')(img_input)
+    x = BatchNormalization(name='block_1_bn_1')(x)
+    x = Activation('relu', name='block_1_relu_1')(x)
+    x, z = hires_add_block([x, GlobalAveragePooling2D()(x)], [32, 32, 128], 1, 2)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5)
+    x = MaxPooling2D(name='block_1_pool')(x)
+    x, z = hires_concat_block([x, z], [32, 64, 256], 2, 1)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 4)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7)
+    x = MaxPooling2D(name='block_2_pool')(x)
+    x, z = hires_concat_block([x, z], [64, 128, 512], 3, 1)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4)
+    x = Conv2D(128, 1, name='block_4_Conv_1')(x)
+    x = BatchNormalization(name='block_4_bn_1')(x)
+    x = Activation('relu', name='block_4_relu_1')(x)
+    x = GlobalAveragePooling2D()(x)
+    x = add([x, z])
+    x = Dense(10, activation='softmax', name='softmax_output')(x)
     return Model(img_input, x)
 
 
