@@ -7,4 +7,7 @@ try         model           acc
 6           HiResF          0.8333
 7           HiResG          0.8340
 8           ResA            0.8371
-9           HiResH          0.
+9           HiResH          0.8472
+# datagen
+10          HiResH          0.
+11          HiResSmall

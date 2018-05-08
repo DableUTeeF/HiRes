@@ -518,6 +518,26 @@ def HiResH():
     return Model(img_input, x)
 
 
+def HiResSmall():
+    img_input = Input(shape=(32, 32, 3), name='input')
+    x = Conv2D(32, 5, name='block_1_Conv_1')(img_input)
+    x = BatchNormalization(name='block_1_bn_1')(x)
+    x = Activation('relu', name='block_1_relu_1')(x)
+    x, z = hires_add_block([x, GlobalAveragePooling2D()(x)], [32, 32, 128], 1, 2)
+    x = MaxPooling2D(name='block_1_pool')(x)
+    x, z = hires_concat_block([x, z], [32, 64, 256], 2, 1)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 4)
+    x = MaxPooling2D(name='block_2_pool')(x)
+    x, z = hires_concat_block([x, z], [64, 128, 512], 3, 1)
+    x = Conv2D(128, 1, name='block_4_Conv_1')(x)
+    x = BatchNormalization(name='block_4_bn_1')(x)
+    x = Activation('relu', name='block_4_relu_1')(x)
+    x = GlobalAveragePooling2D()(x)
+    x = add([x, z])
+    x = Dense(10, activation='softmax', name='softmax_output')(x)
+    return Model(img_input, x)
+
+
 def ResA():
     img_input = Input(shape=(32, 32, 3))
     x = Conv2D(32, 5, padding='valid', name='conv1')(img_input)
