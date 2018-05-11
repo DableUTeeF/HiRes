@@ -9,5 +9,10 @@ try         model           acc
 8           ResA            0.8371
 9           HiResH          0.8472
 # datagen
-10          HiResH          0.
-11          HiResSmall
+10          HiResH          0.8961
+11          HiResH          0.8973
+12          HiResSmall      0.8804
+13          ResA            0.8951
+14          HiResH+dropout  0.6785
+15          HiResI
+16          HiResH+adam

@@ -1,6 +1,9 @@
 from __future__ import print_function
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["KERAS_BACKEND"] = "tensorflow"
 from model import *
-from keras.optimizers import sgd
+from keras.optimizers import adam
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras.preprocessing.image import ImageDataGenerator
 from keras.datasets.cifar10 import load_data
@@ -10,23 +13,23 @@ import numpy as np
 
 
 def lr_reduce(epoch, lr):
-    if epoch + 1 == 50*3 or epoch + 1 == 75*3:
+    if epoch + 1 == 3*50 or epoch + 1 == 3*75:
         return lr / 10
     else:
         return lr
 
 
 if __name__ == '__main__':
-    try_no = ['10', '11', '12']
-    models = [HiResH, HiResSmall, ResA]
+    try_no = ['17']
+    models = [HiResH]
     for i in range(len(try_no)):
         count = 0
         model = models[i]()
         print(model.summary())
-        model.compile(optimizer=sgd(lr=0.01, decay=1e-5, momentum=0.9),
+        model.compile(optimizer=adam(lr=0.01, decay=1e-5),
                       loss='categorical_crossentropy',
                       metrics=['acc'])
-        reduce_lr = LearningRateScheduler(lr_reduce)
+        reduce_lr = LearningRateScheduler(lr_reduce, verbose=1)
         checkpoint = ModelCheckpoint('weights/try-{}.h5'.format(try_no[i]),
                                      monitor='val_acc',
                                      mode='max',
@@ -41,7 +44,8 @@ if __name__ == '__main__':
         x_train_mean = np.mean(x_train, axis=0)
         x_train -= x_train_mean
         x_test -= x_train_mean
-
+        x_train *= 2
+        x_test *= 2
         train_generator = ImageDataGenerator(featurewise_center=False,
                                              samplewise_center=False,
                                              featurewise_std_normalization=False,
@@ -53,22 +57,22 @@ if __name__ == '__main__':
                                              height_shift_range=.15,
                                              shear_range=15,
                                              zoom_range=.1,
-                                             channel_shift_range=.1,
+                                             channel_shift_range=0,
                                              horizontal_flip=True,
                                              vertical_flip=True)
         train_generator.fit(x_train)
         test_generator = ImageDataGenerator()
-        train_datagen = train_generator.flow(x_train, y_train)
+        train_datagen = train_generator.flow(x_train, y_train, batch_size=64)
         test_datagen = test_generator.flow(x_test, y_test)
 
         f = model.fit_generator(train_datagen,
                                 epochs=300,
                                 validation_data=test_datagen,
-                                callbacks=[checkpoint])
+                                callbacks=[checkpoint, reduce_lr])
 
         # f = model.fit(x_train, y_train,
-        #               epochs=100,
-        #               batch_size=32,
+        #               epochs=300,
+        #               batch_size=64,
         #               validation_data=[x_test, y_test],
         #               callbacks=[checkpoint, reduce_lr])
         with open('log/try_{}.json'.format(try_no[i]), 'w') as wr:

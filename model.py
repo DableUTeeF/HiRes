@@ -1,7 +1,7 @@
 from __future__ import print_function
 from keras import Model
 from keras.layers import Conv2D, BatchNormalization, Activation, GlobalAveragePooling2D
-from keras.layers import Dense, MaxPooling2D, add, Input, Concatenate
+from keras.layers import Dense, MaxPooling2D, add, Input, Concatenate, Dropout
 from keras.applications.resnet50 import identity_block, conv_block
 
 
@@ -88,12 +88,15 @@ def hires_concat_block(input_tensor, filters, block, stage):
     z = Concatenate()([GlobalAveragePooling2D()(x), (input_tensor[1])])
     z = Activation('relu', name='skip_{}_relu_{}'.format(block, stage))(z)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage))(x)
+    # x = Dropout(0.2)(x)
     x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1))(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+1))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+1))(x)
+    # x = Dropout(0.2)(x)
     x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2))(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+2))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+2))(x)
+    # x = Dropout(0.2)(x)
     return x, z
 
 
@@ -111,12 +114,15 @@ def hires_add_block(input_tensor, filters, block, stage):
     z = add([GlobalAveragePooling2D()(x), (input_tensor[1])])
     z = Activation('relu', name='skip_{}_relu_{}'.format(block, stage))(z)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage))(x)
+    # x = Dropout(0.2)(x)
     x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1))(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+1))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+1))(x)
+    # x = Dropout(0.2)(x)
     x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2))(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+2))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+2))(x)
+    # x = Dropout(0.2)(x)
     return x, z
 
 
@@ -518,6 +524,53 @@ def HiResH():
     return Model(img_input, x)
 
 
+def HiResI():
+    img_input = Input(shape=(32, 32, 3), name='input')
+    x = Conv2D(32, 5, name='block_1_Conv_1')(img_input)
+    x = BatchNormalization(name='block_1_bn_1')(x)
+    x = Activation('relu', name='block_1_relu_1')(x)
+    x, z = hires_add_block([x, GlobalAveragePooling2D()(x)], [32, 32, 128], 1, 2)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3+3)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3+3+3)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3+3+3+3)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3+3+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5+3+3+3+3+3+3+3+3)
+    x = MaxPooling2D(name='block_1_pool')(x)
+    x, z = hires_concat_block([x, z], [32, 64, 256], 2, 1)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 4)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3+3)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3+3+3)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3+3+3+3)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3+3+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 7+3+3+3+3+3+3+3+3)
+    x = MaxPooling2D(name='block_2_pool')(x)
+    x, z = hires_concat_block([x, z], [64, 128, 512], 3, 1)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3+3)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3+3+3)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3+3+3+3)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3+3+3+3+3+3+3)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4+3+3+3+3+3+3+3+3)
+    x = Conv2D(128, 1, name='block_4_Conv_1')(x)
+    x = BatchNormalization(name='block_4_bn_1')(x)
+    x = Activation('relu', name='block_4_relu_1')(x)
+    x = GlobalAveragePooling2D()(x)
+    x = add([x, z])
+    x = Dense(10, activation='softmax', name='softmax_output')(x)
+    return Model(img_input, x)
+
+
 def HiResSmall():
     img_input = Input(shape=(32, 32, 3), name='input')
     x = Conv2D(32, 5, name='block_1_Conv_1')(img_input)
@@ -550,6 +603,22 @@ def ResA():
     x = identity_block(x, 3, [64, 64, 256], stage=3, block='c')
     x = conv_block(x, 3, [128, 128, 512], stage=4, block='a')
     x = identity_block(x, 3, [128, 128, 512], stage=4, block='b')
+    x = GlobalAveragePooling2D(name='avg_pool')(x)
+    x = Dense(10, activation='softmax', name='fc')(x)
+    return Model(img_input, x, name='resnet')
+
+
+def ResB():
+    img_input = Input(shape=(32, 32, 3))
+    x = Conv2D(16, 3, padding='same', name='conv1')(img_input)
+    x = BatchNormalization(name='bn_conv1')(x)
+    x = Activation('relu')(x)
+    x = conv_block(x, 3, [16, 16, 64], stage=2, block='a', strides=(1, 1))
+    x = identity_block(x, 3, [16, 16, 64], stage=2, block='b')
+    x = conv_block(x, 3, [32, 32, 128], stage=3, block='a')
+    x = identity_block(x, 3, [32, 32, 128], stage=3, block='b')
+    x = conv_block(x, 3, [64, 64, 256], stage=4, block='a')
+    x = identity_block(x, 3, [64, 64, 256], stage=4, block='b')
     x = GlobalAveragePooling2D(name='avg_pool')(x)
     x = Dense(10, activation='softmax', name='fc')(x)
     return Model(img_input, x, name='resnet')
