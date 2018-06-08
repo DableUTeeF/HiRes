@@ -1,18 +1,25 @@
-try         model           acc
-1           HiResA          0.8496
+try         model                   acc
+1           HiResA                  0.8496
 2           HiResB
-3           HiResC          0.8494
-4           HiResD          0.8307
-5           HiResE          0.8282
-6           HiResF          0.8333
-7           HiResG          0.8340
-8           ResA            0.8371
-9           HiResH          0.8472
+3           HiResC                  0.8494
+4           HiResD                  0.8307
+5           HiResE                  0.8282
+6           HiResF                  0.8333
+7           HiResG                  0.8340
+8           ResA                    0.8371
+9           HiResH                  0.8472
 # datagen
-10          HiResH          0.8961
-11          HiResH          0.8973
-12          HiResSmall      0.8804
-13          ResA            0.8951
-14          HiResH+dropout  0.6785
-15          HiResI
-16          HiResH+adam
+10          HiResH                  0.8961
+11*         HiResH                  0.8973
+12          HiResSmall              0.8804
+13          ResA                    0.8951
+14          HiResH+dropout          0.6785
+15          HiResI                  0.8695
+16          HiResH+adam             0.8627
+17          HiResH+0.1sgd
+18          HiResH+He_n
+19          HiResH+new_lr
+20          HiResH+0 decay
+21          HiResH+old sgd, He_n    0.8941
+22          HiResH+0.1sgd           -
+23          HiResH21+continue       0.8933

@@ -83,17 +83,20 @@ def hires_concat_block(input_tensor, filters, block, stage):
     :return: convolution_path, skip_path
     """
     filters1, filters2, filters3 = filters
-    x = Conv2D(filters1, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage))(input_tensor[0])
+    x = Conv2D(filters1, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage),
+               kernel_initializer='he_uniform', use_bias=False)(input_tensor[0])
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage))(x)
     z = Concatenate()([GlobalAveragePooling2D()(x), (input_tensor[1])])
     z = Activation('relu', name='skip_{}_relu_{}'.format(block, stage))(z)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage))(x)
     # x = Dropout(0.2)(x)
-    x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1))(x)
+    x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1),
+               kernel_initializer='he_uniform', use_bias=False)(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+1))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+1))(x)
     # x = Dropout(0.2)(x)
-    x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2))(x)
+    x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2),
+               kernel_initializer='he_uniform', use_bias=False)(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+2))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+2))(x)
     # x = Dropout(0.2)(x)
@@ -109,17 +112,20 @@ def hires_add_block(input_tensor, filters, block, stage):
     :return: convolution_path, skip_path
     """
     filters1, filters2, filters3 = filters
-    x = Conv2D(filters1, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage))(input_tensor[0])
+    x = Conv2D(filters1, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage),
+               kernel_initializer='he_uniform', use_bias=False)(input_tensor[0])
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage))(x)
     z = add([GlobalAveragePooling2D()(x), (input_tensor[1])])
     z = Activation('relu', name='skip_{}_relu_{}'.format(block, stage))(z)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage))(x)
     # x = Dropout(0.2)(x)
-    x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1))(x)
+    x = Conv2D(filters2, (3, 3), padding='same', name='block_{}_Conv_{}'.format(block, stage+1),
+               kernel_initializer='he_uniform', use_bias=False)(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+1))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+1))(x)
     # x = Dropout(0.2)(x)
-    x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2))(x)
+    x = Conv2D(filters3, (1, 1), padding='same', name='block_{}_Conv_{}'.format(block, stage+2),
+               kernel_initializer='he_uniform', use_bias=False)(x)
     x = BatchNormalization(name='block_{}_bn_{}'.format(block, stage+2))(x)
     x = Activation('relu', name='block_{}_relu_{}'.format(block, stage+2))(x)
     # x = Dropout(0.2)(x)
@@ -503,7 +509,7 @@ def HiResG():
 
 def HiResH():
     img_input = Input(shape=(32, 32, 3), name='input')
-    x = Conv2D(32, 5, name='block_1_Conv_1')(img_input)
+    x = Conv2D(32, 5, name='block_1_Conv_1', kernel_initializer='he_uniform', use_bias=False)(img_input)
     x = BatchNormalization(name='block_1_bn_1')(x)
     x = Activation('relu', name='block_1_relu_1')(x)
     x, z = hires_add_block([x, GlobalAveragePooling2D()(x)], [32, 32, 128], 1, 2)
@@ -515,12 +521,12 @@ def HiResH():
     x = MaxPooling2D(name='block_2_pool')(x)
     x, z = hires_concat_block([x, z], [64, 128, 512], 3, 1)
     x, z = hires_add_block([x, z], [128, 128, 512], 3, 4)
-    x = Conv2D(128, 1, name='block_4_Conv_1')(x)
+    x = Conv2D(128, 1, name='block_4_Conv_1', kernel_initializer='he_uniform', use_bias=False)(x)
     x = BatchNormalization(name='block_4_bn_1')(x)
     x = Activation('relu', name='block_4_relu_1')(x)
     x = GlobalAveragePooling2D()(x)
     x = add([x, z])
-    x = Dense(10, activation='softmax', name='softmax_output')(x)
+    x = Dense(10, activation='softmax', name='softmax_output', use_bias=False)(x)
     return Model(img_input, x)
 
 
@@ -568,6 +574,31 @@ def HiResI():
     x = GlobalAveragePooling2D()(x)
     x = add([x, z])
     x = Dense(10, activation='softmax', name='softmax_output')(x)
+    return Model(img_input, x)
+
+
+def HiResJ():
+    img_input = Input(shape=(32, 32, 3), name='input')
+    x = Conv2D(32, 3, padding='same', name='block_1_Conv_1', kernel_initializer='he_uniform', use_bias=False)(img_input)
+    x = BatchNormalization(name='block_1_bn_1')(x)
+    x = Activation('relu', name='block_1_relu_1')(x)
+    x, z = hires_add_block([x, GlobalAveragePooling2D()(x)], [32, 32, 128], 1, 2)
+    x, z = hires_add_block([x, z], [32, 32, 128], 1, 5)
+    x = MaxPooling2D(name='block_1_pool')(x)
+    x, z = hires_concat_block([x, z], [32, 64, 256], 2, 1)
+    x, z = hires_add_block([x, z], [64, 64, 256], 2, 4)
+    x = MaxPooling2D(name='block_2_pool')(x)
+    x, z = hires_concat_block([x, z], [64, 128, 512], 3, 1)
+    x, z = hires_add_block([x, z], [128, 128, 512], 3, 4)
+    x = MaxPooling2D(name='block_3_pool')(x)
+    x, z = hires_concat_block([x, z], [128, 256, 1024], 4, 1)
+    x, z = hires_add_block([x, z], [256, 256, 1024], 4, 4)
+    x = Conv2D(256, 1, name='block_5_Conv_1', kernel_initializer='he_uniform', use_bias=False)(x)
+    x = BatchNormalization(name='block_5_bn_1')(x)
+    x = Activation('relu', name='block_5_relu_1')(x)
+    x = GlobalAveragePooling2D()(x)
+    x = add([x, z])
+    x = Dense(10, activation='softmax', name='softmax_output', use_bias=False)(x)
     return Model(img_input, x)
 
 
